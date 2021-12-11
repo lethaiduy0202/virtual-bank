@@ -6,7 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.virtualbank.domain.AuthenResponse;
-import com.virtualbank.dto.LoginDTO;
+import com.virtualbank.dto.LoginDto;
 import com.virtualbank.security.JwtTokenProvider;
 import com.virtualbank.security.VirtualBankUserDetails;
 import com.virtualbank.services.AuthenticationService;
@@ -21,7 +21,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
   private JwtTokenProvider tokenProvider;
   
   @Override
-  public AuthenResponse authenticate(LoginDTO loginDTO) {
+  public AuthenResponse authenticate(LoginDto loginDTO) {
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(loginDTO.getUserName(), loginDTO.getPassword()));
     VirtualBankUserDetails userDetail = (VirtualBankUserDetails) authentication.getPrincipal();

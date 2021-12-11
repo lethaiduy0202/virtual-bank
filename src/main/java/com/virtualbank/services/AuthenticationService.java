@@ -1,10 +1,10 @@
 package com.virtualbank.services;
 
 import com.virtualbank.domain.AuthenResponse;
-import com.virtualbank.dto.LoginDTO;
+import com.virtualbank.dto.LoginDto;
 
 public interface AuthenticationService {
   
-  AuthenResponse authenticate(LoginDTO loginDTO);
+  AuthenResponse authenticate(LoginDto loginDTO);
 
 }

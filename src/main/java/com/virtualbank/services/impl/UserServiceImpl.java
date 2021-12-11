@@ -5,14 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.virtualbank.dto.UserDTO;
-import com.virtualbank.entity.Role;
+import com.virtualbank.dto.UserDto;
 import com.virtualbank.entity.User;
 import com.virtualbank.exceptions.ResourceNotFoundException;
 import com.virtualbank.mapper.UserMapper;
 import com.virtualbank.repositories.UserRepository;
 import com.virtualbank.security.VirtualBankUserDetails;
-import com.virtualbank.services.RoleService;
 import com.virtualbank.services.UserService;
 
 @Service
@@ -21,19 +19,16 @@ public class UserServiceImpl implements UserService {
   private UserRepository userRepository;
 
   @Autowired
-  private RoleService roleService;
-
-  @Autowired
   private PasswordEncoder passwordEncoder;
+  
+  
 
   @Override
-  public UserDTO saveUser(UserDTO userDto) {
-    UserMapper mapper = new UserMapper();
-    Role role = roleService.getRole(userDto.getRole().getRoleName());
+  public UserDto saveUser(UserDto userDto) {
     userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
-    User userEntity = mapper.convertToEntity(userDto, role);
+    User userEntity = UserMapper.convertToEntity(userDto);
     userEntity = userRepository.save(userEntity);
-    return mapper.convertToDTO(userEntity);
+    return UserMapper.convertToDTO(userEntity);
   }
 
   @Override
@@ -46,6 +41,24 @@ public class UserServiceImpl implements UserService {
     } else {
       throw new ResourceNotFoundException("user", "username");
     }
+  }
+
+  @Override
+  public Long getCurrentUserId() {
+    VirtualBankUserDetails virtualUserDetails = (VirtualBankUserDetails) SecurityContextHolder
+        .getContext().getAuthentication().getPrincipal();
+    return virtualUserDetails.getId();
+  }
+
+  @Override
+  public User getUserByUserId(Long userId) {
+   Optional<User> userOpt =  userRepository.findById(userId);
+   if (userOpt.isPresent()) {
+     return userOpt.get();
+   }
+   else {
+     throw new ResourceNotFoundException("user", String.valueOf(userId));
+   }
   }
 
 }

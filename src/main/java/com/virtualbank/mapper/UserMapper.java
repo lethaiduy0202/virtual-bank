@@ -1,24 +1,21 @@
 package com.virtualbank.mapper;
 
 import java.util.Date;
-import com.virtualbank.dto.RoleDTO;
-import com.virtualbank.dto.UserDTO;
-import com.virtualbank.entity.Role;
+import com.virtualbank.dto.UserDto;
 import com.virtualbank.entity.User;
 
 
 public class UserMapper {
+  private UserMapper() {}
 
-  public User convertToEntity(UserDTO userDto, Role role) {
-    return User.builder().firstName(userDto.getFirsrName()).lastName(userDto.getLastName())
-        .dateCreate(new Date()).userName(userDto.getUserName()).password(userDto.getPassword())
-        .role(role).build();
+  public static User convertToEntity(UserDto userDto) {
+    return User.builder().fullName(userDto.getFullName()).dateCreate(new Date())
+        .userName(userDto.getUserName()).password(userDto.getPassword()).build();
 
   }
 
-  public UserDTO convertToDTO(User user) {
-    RoleDTO role = new RoleDTO(user.getRole().getRoleName());
-    return UserDTO.builder().firsrName(user.getFirstName()).lastName(user.getLastName())
-        .password(user.getPassword()).userName(user.getUserName()).role(role).build();
+  public static UserDto convertToDTO(User user) {
+    return UserDto.builder().fullName(user.getFullName())
+        .userName(user.getUserName()).build();
   }
 }

@@ -3,10 +3,11 @@ package com.virtualbank.repositories;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import com.virtualbank.entity.Role;
+import com.virtualbank.entity.Account;
+import com.virtualbank.entity.User;
 
 @Repository
-public interface RoleRepository extends JpaRepository<Role, Long> {
-  Optional<Role> findByRoleName(String roleName);
+public interface AccountRepository extends JpaRepository<Account, Long> {
+  Optional<Account> findByUser(User user);
 
 }

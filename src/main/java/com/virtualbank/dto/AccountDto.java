@@ -1,5 +1,6 @@
 package com.virtualbank.dto;
 
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,10 +12,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class UserDTO {
-  private String firsrName;
-  private String lastName;
-  private String userName;
-  private String password;
-  private RoleDTO role;
+public class AccountDto {
+  private String accNumber;
+  private BigDecimal accBanlance;
 }

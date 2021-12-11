@@ -8,25 +8,30 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.virtualbank.domain.AccountResponse;
+import com.virtualbank.dto.AccountDto;
 import com.virtualbank.dto.UserDto;
 import com.virtualbank.entity.User;
+import com.virtualbank.exceptions.AccountException;
+import com.virtualbank.services.AccountService;
 import com.virtualbank.services.UserService;
 
 @RestController
-@RequestMapping("/user")
-public class UserController {
+@RequestMapping("/account")
+public class AccountController {
+
+  @Autowired
+  private AccountService accountService;
 
   @Autowired
   private UserService userService;
 
   @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<UserDto> saveUser(@RequestBody(required = true) UserDto userReq) {
-    return ResponseEntity.ok(userService.saveUser(userReq));
+  public ResponseEntity<AccountResponse> saveUser(
+      @RequestBody(required = true) AccountDto accountReq) throws AccountException {
+    return ResponseEntity
+        .ok(accountService.createAccount(userService.getCurrentUserId(), accountReq));
   }
 
-  @GetMapping("/current")
-  public ResponseEntity<User> getCurrentUser() {
-    return ResponseEntity.ok(userService.getCurrentUser());
-  }
 }
