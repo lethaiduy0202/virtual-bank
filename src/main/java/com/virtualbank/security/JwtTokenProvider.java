@@ -72,11 +72,13 @@ public class JwtTokenProvider {
   }
 
   public void revokeToken(Long userId) {
+    log.info("Revoke token for user {}", userId);
     Token token = tokenRepository.findByUserId(userId);
     if (token != null) {
       token.setRevoked(true);
       tokenRepository.save(token);
     }
+    log.info("Revoked token for user {}", userId);
   }
 
 }

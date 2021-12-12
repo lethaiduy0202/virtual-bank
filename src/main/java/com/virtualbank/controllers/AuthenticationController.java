@@ -1,4 +1,4 @@
- package com.virtualbank.controllers;
+package com.virtualbank.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.virtualbank.domain.AuthenResponse;
 import com.virtualbank.dto.LoginDto;
+import com.virtualbank.dto.ResetPasswordDto;
 import com.virtualbank.services.AuthenticationService;
 
 @RestController
@@ -24,10 +25,15 @@ public class AuthenticationController {
   public ResponseEntity<AuthenResponse> login(@RequestBody LoginDto loginReq) {
     return ResponseEntity.ok(authService.authenticate(loginReq));
   }
-  
+
   @GetMapping(value = "/logout")
   public void logout() {
-    authService.logout(); 
+    authService.logout();
   }
-  
+
+  @PostMapping(value = "/reset/password", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public void changePassword(@RequestBody ResetPasswordDto resetPasswordDto) {
+    authService.resetPassword(resetPasswordDto);
+  }
+
 }
