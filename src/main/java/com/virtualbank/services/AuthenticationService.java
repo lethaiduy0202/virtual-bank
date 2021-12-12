@@ -6,5 +6,7 @@ import com.virtualbank.dto.LoginDto;
 public interface AuthenticationService {
   
   AuthenResponse authenticate(LoginDto loginDTO);
+  
+  void logout();
 
 }

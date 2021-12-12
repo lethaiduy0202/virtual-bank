@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.virtualbank.domain.UserResponse;
 import com.virtualbank.dto.UserDto;
 import com.virtualbank.entity.User;
 import com.virtualbank.services.UserService;
@@ -21,12 +22,12 @@ public class UserController {
 
   @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<UserDto> saveUser(@RequestBody(required = true) UserDto userReq) {
-    return ResponseEntity.ok(userService.saveUser(userReq));
+  public void saveUser(@RequestBody(required = true) UserDto userReq) {
+    userService.saveUser(userReq);
   }
 
   @GetMapping("/current")
-  public ResponseEntity<User> getCurrentUser() {
+  public ResponseEntity<UserResponse> getCurrentUser() {
     return ResponseEntity.ok(userService.getCurrentUser());
   }
 }

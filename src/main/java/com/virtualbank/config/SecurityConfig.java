@@ -16,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import com.virtualbank.security.JwtTokenFilter;
 import com.virtualbank.security.VirtualBankUserDetailService;
 
@@ -62,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     web.ignoring()
         .antMatchers("/v2/api-docs", "/swagger-resources/**", "/swagger-resources",
             "/swagger-ui.html", "/webjars/**")
-        .and().ignoring().antMatchers("/login").and().ignoring().antMatchers("/user/create");
+        .and().ignoring().antMatchers("/authen/login").and().ignoring().antMatchers("/user/create");
   }
 
   @Override
@@ -70,7 +71,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     http.cors().and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and().csrf().disable().formLogin().disable().httpBasic().disable().authorizeRequests()
         .anyRequest().authenticated();
-    
     http.addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 

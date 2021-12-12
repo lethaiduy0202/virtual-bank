@@ -1,12 +1,13 @@
 package com.virtualbank.services;
 
+import com.virtualbank.domain.UserResponse;
 import com.virtualbank.dto.UserDto;
 import com.virtualbank.entity.User;
 
 public interface UserService {
-  UserDto saveUser(UserDto userDto);
+  void saveUser(UserDto userDto);
   
-  User getCurrentUser();
+  UserResponse getCurrentUser();
   
   Long getCurrentUserId();
   

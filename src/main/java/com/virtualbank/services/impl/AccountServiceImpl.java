@@ -34,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
     Account account = AccountMapper.convertToEntity(accountDto, user);
     account = accountRepository.save(account);
     return AccountResponse.builder().accNumber(account.getAccNumber())
-        .accBalance(account.getAccBalance()).user(UserMapper.convertToDTO(user)).build();
+        .accBalance(account.getAccBalance()).build();
   }
 
 }

@@ -31,7 +31,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
       FilterChain filterChain) throws ServletException, IOException {
     try {
       String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-      if (!bearerToken.isEmpty() && bearerToken.contains(STR_BEARER)) {
+      if (bearerToken != null && bearerToken.contains(STR_BEARER)) {
         String token = StringUtils.removeLetters(bearerToken, STR_BEARER, "").trim();
         String email = tokenProvider.resolveToken(token);
         if (email != null) {

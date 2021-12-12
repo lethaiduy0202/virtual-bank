@@ -16,6 +16,4 @@ import lombok.Getter;
 public class AccountResponse {
   private String accNumber;
   private BigDecimal accBalance;
-  private UserDto user;
-
 }

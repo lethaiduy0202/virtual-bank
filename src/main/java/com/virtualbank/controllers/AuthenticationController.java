@@ -1,4 +1,4 @@
-package com.virtualbank.controllers;
+ package com.virtualbank.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -24,10 +24,10 @@ public class AuthenticationController {
   public ResponseEntity<AuthenResponse> login(@RequestBody LoginDto loginReq) {
     return ResponseEntity.ok(authService.authenticate(loginReq));
   }
-
+  
   @GetMapping(value = "/logout")
-  public void logout() {}
+  public void logout() {
+    authService.logout(); 
+  }
   
-  
-
 }
