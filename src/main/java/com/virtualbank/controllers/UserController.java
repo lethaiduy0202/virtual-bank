@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.virtualbank.domain.UserResponse;
 import com.virtualbank.dto.UserDto;
-import com.virtualbank.entity.User;
 import com.virtualbank.services.UserService;
 
 @RestController

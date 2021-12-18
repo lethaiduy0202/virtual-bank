@@ -49,7 +49,8 @@ public class UserServiceImpl implements UserService {
             .accBalance(accountOpt.get().getAccBalance()).build();
       }
       return UserResponse.builder().fullName(userOpt.get().getFullName()).id(userOpt.get().getId())
-          .username(userOpt.get().getUserName()).accountResponse(accountResponse).build();
+          .dateCreate(userOpt.get().getDateCreate()).username(userOpt.get().getUserName())
+          .accountResponse(accountResponse).build();
     } else {
       throw new ResourceNotFoundException("user", "username");
     }

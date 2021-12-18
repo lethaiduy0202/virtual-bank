@@ -3,7 +3,8 @@ package com.virtualbank.enums;
 public enum ErrorsEnum {
   ROLE_EXIST("Role is exist"),
   ACCOUNT_EXIST("Account is exist"),
-  AUTHEN_FAIL("Username or password incorrect");
+  AUTHEN_FAIL("Username or password incorrect"),
+  CANNOT_SAVE("Opps! The save is failed");
 
   private String errorMessage;
 

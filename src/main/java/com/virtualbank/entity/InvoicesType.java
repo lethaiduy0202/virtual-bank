@@ -1,6 +1,5 @@
 package com.virtualbank.entity;
 
-import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,24 +14,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "user")
+@Table(name = "invoicestype")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
+public class InvoicesType {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  @Column(name = "full_name", nullable = false)
-  private String fullName;
-  @Column(name = "user_name", unique = true, nullable = false)
-  private String userName;
-  @Column(name = "password", nullable = false)
-  private String password;
-  @Column(name = "date_create", nullable = false)
-  private Date dateCreate;
-  @OneToOne(mappedBy = "user")
-  private Account account;
+  @Column(name = "invoices_type")
+  private String invoicesType;
+//  @OneToOne(mappedBy = "invoicesType")
+//  private Invoices invoices;
+
 }
