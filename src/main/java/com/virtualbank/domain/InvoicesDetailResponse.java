@@ -1,6 +1,7 @@
 package com.virtualbank.domain;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import com.virtualbank.entity.InvoicesType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,4 +19,5 @@ public class InvoicesDetailResponse {
  private Long consumption;
  private BigDecimal billAmount;
  private InvoicesType invoicesType;
+ private Date dayPay;
 }

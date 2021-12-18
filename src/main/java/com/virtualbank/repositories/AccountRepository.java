@@ -10,4 +10,6 @@ import com.virtualbank.entity.User;
 public interface AccountRepository extends JpaRepository<Account, Long> {
   Optional<Account> findByUser(User user);
 
+  Optional<Account> findByAccNumber(String accNumber);
+
 }

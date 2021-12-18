@@ -75,7 +75,7 @@ public class InvoicesServiceImpl implements InvoicesService {
     invoices.stream().forEach(invoice -> {
       InvoicesDetailResponse invoicesDetail =
           InvoicesDetailResponse.builder().id(invoice.getId()).consumption(invoice.getConsumption())
-              .billAmount(invoice.getBillAmount()).invoicesType(invoice.getInvoicesType()).build();
+              .billAmount(invoice.getBillAmount()).invoicesType(invoice.getInvoicesType()).dayPay(invoice.getDatePay()).build();
       invoicesDetails.add(invoicesDetail);
       totalConsumption = totalConsumption.add(invoice.getBillAmount());
     });

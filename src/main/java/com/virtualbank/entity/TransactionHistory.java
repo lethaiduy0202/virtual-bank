@@ -20,28 +20,29 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "invoices")
+@Table(name = "trans_history")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Invoices {
+public class TransactionHistory {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-  @Column(name = "bill_month", nullable = false)
-  private String billMonth;
-  @Column(name = "consumption", nullable = true)
-  private Long consumption;
-  @Column(name = "bill_amount", nullable = false)
-  private BigDecimal billAmount;
-  @Column(name = "date_pay", nullable = true)
-  private Date datePay;
+  @ManyToOne
+  @JoinColumn(name = "acc_id")
+  private Account account;
   @ManyToOne
   @JoinColumn(name = "user_id")
   private User user;
   @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "invoicetype_id")
-  private InvoicesType invoicesType;
+  @JoinColumn(name = "transtyoe_id")
+  private TransactionType transType;
+  @Column(name = "trans_note", nullable = false)
+  private String transNote;
+  @Column(name = "trans_date", nullable = false)
+  private Date transDate;
+  @Column(name = "trans_amount", nullable = false)
+  private BigDecimal transAmount;
 }
