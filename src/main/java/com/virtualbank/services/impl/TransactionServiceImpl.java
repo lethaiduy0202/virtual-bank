@@ -1,10 +1,13 @@
 package com.virtualbank.services.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.virtualbank.domain.TransactionHistoryResponse;
 import com.virtualbank.dto.InfoTranferDto;
 import com.virtualbank.dto.TransactionTypeDto;
 import com.virtualbank.entity.Account;
@@ -51,55 +54,75 @@ public class TransactionServiceImpl implements TransactionService {
   @Override
   @Transactional
   public void tranferMoneny(Long userId, InfoTranferDto infoTranfer) throws AccountException {
-    try {
-      log.info("Starting tranfer money for receiver  {}", infoTranfer.getUsername());
-      Optional<Account> receiverAccountOpt =
-          accountRepository.findByAccNumber(infoTranfer.getAccounReceiver());
-      if (receiverAccountOpt.isPresent()) {
-        // add money for receiver
-        receiverAccountOpt.get()
-            .setAccBalance(receiverAccountOpt.get().getAccBalance().add(infoTranfer.getAmount()));
-        accountRepository.save(receiverAccountOpt.get());
-
-        // build transaction history - receiver
-        Optional<TransactionType> receiverTransTypeOpt =
-            transactionTypeRepository.findByTransType(TransTypesEnum.ADD.name());
-        TransactionHistory receiverTransHistory = TransactionHistory.builder()
-            .account(receiverAccountOpt.get()).user(receiverAccountOpt.get().getUser())
-            .transType(receiverTransTypeOpt.get()).transNote(infoTranfer.getContent())
-            .transAmount(infoTranfer.getAmount()).transDate(new Date()).build();
-        transactionHistoryRepository.save(receiverTransHistory);
-
-
-        User sender = userService.getUserByUserId(userId);
-        Optional<Account> senderAccountOpt = accountRepository.findByUser(sender);
-        if (senderAccountOpt.isPresent()) {
-          // minus for sender;
-          senderAccountOpt.get().setAccBalance(
-              senderAccountOpt.get().getAccBalance().subtract(infoTranfer.getAmount()));
-          accountRepository.save(senderAccountOpt.get());
-
-          // build transaction history - sender
-          Optional<TransactionType> senderTransTypeOpt =
-              transactionTypeRepository.findByTransType(TransTypesEnum.MINUS.name());
-          TransactionHistory senderTransHistory = TransactionHistory.builder()
-              .account(senderAccountOpt.get()).user(senderAccountOpt.get().getUser())
-              .transType(senderTransTypeOpt.get()).transNote(infoTranfer.getContent())
-              .transAmount(infoTranfer.getAmount()).transDate(new Date()).build();
-          transactionHistoryRepository.save(senderTransHistory);
-
-          log.info("Tranfer money for receiver  {} success", infoTranfer.getUsername());
-        }
-
-      } else {
-        throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+    log.info("Starting tranfer money for receiver {}", infoTranfer.getUsername());
+    User sender = userService.getUserByUserId(userId);
+    Optional<Account> receiverAccountOpt =
+        accountRepository.findByAccNumber(infoTranfer.getAccounReceiver());
+    Optional<Account> senderAccountOpt = accountRepository.findByUser(sender);
+    if (receiverAccountOpt.isPresent() && senderAccountOpt.isPresent()) {
+      if (infoTranfer.getAmount().compareTo(sender.getAccount().getAccBalance()) == 1) {
+        log.error(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
+        throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
       }
+      // add money for receiver
+      receiverAccountOpt.get()
+          .setAccBalance(receiverAccountOpt.get().getAccBalance().add(infoTranfer.getAmount()));
+      accountRepository.save(receiverAccountOpt.get());
+
+      // build transaction history - receiver
+      Optional<TransactionType> receiverTransTypeOpt =
+          transactionTypeRepository.findByTransType(TransTypesEnum.ADD.name());
+      TransactionHistory receiverTransHistory = TransactionHistory.builder()
+          .account(receiverAccountOpt.get()).user(senderAccountOpt.get().getUser())
+          .transType(receiverTransTypeOpt.get()).transNote(infoTranfer.getContent())
+          .transAmount(infoTranfer.getAmount()).transDate(new Date()).build();
+      transactionHistoryRepository.save(receiverTransHistory);
 
 
-    } catch (Exception e) {
-      log.error(e.getMessage());
+      // minus for sender;
+      senderAccountOpt.get()
+          .setAccBalance(senderAccountOpt.get().getAccBalance().subtract(infoTranfer.getAmount()));
+      accountRepository.save(senderAccountOpt.get());
+
+      // build transaction history - sender
+      Optional<TransactionType> senderTransTypeOpt =
+          transactionTypeRepository.findByTransType(TransTypesEnum.MINUS.name());
+      TransactionHistory senderTransHistory = TransactionHistory.builder()
+          .account(senderAccountOpt.get()).user(receiverAccountOpt.get().getUser())
+          .transType(senderTransTypeOpt.get()).transNote(infoTranfer.getContent())
+          .transAmount(infoTranfer.getAmount()).transDate(new Date()).build();
+      transactionHistoryRepository.save(senderTransHistory);
+
+      log.info("Tranfer money for receiver  {} success", infoTranfer.getUsername());
+
+    } else {
+      log.error(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+      throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
     }
 
+  }
+
+  @Override
+  public List<TransactionHistoryResponse> getTransHistory(Long userId) throws AccountException {
+    List<TransactionHistoryResponse> transactionHistoryResponses = new ArrayList<>();
+    User user = userService.getUserByUserId(userId);
+   Optional<Account>  accountOpt =  accountRepository.findByUser(user);
+   if (accountOpt.isPresent()) {
+     List<TransactionHistory> transHistories = transactionHistoryRepository.findByAccount(accountOpt.get());
+     transHistories.forEach(history -> {
+       TransactionHistoryResponse transHistory = TransactionHistoryResponse.builder()
+           .id(history.getId()).accountNumber(history.getUser().getAccount().getAccNumber())
+           .fullName(history.getUser().getFullName()).transType(history.getTransType())
+           .transNote(history.getTransNote()).transDate(history.getTransDate())
+           .transAmount(history.getTransAmount()).build();
+       transactionHistoryResponses.add(transHistory);
+    });
+   }
+   else {
+     log.error(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+     throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+   }
+    return transactionHistoryResponses;
   }
 
 }

@@ -5,7 +5,8 @@ public enum ErrorsEnum {
   ACCOUNT_EXIST("Account is exist"),
   ACCOUNT_NON_EXIST("The account does not exist"),
   AUTHEN_FAIL("Username or password incorrect"),
-  CANNOT_SAVE("Opps! The save is failed");
+  CANNOT_SAVE("Opps! The save is failed"),
+  MONEY_NOT_ENOUGHT("Your money not enough");
 
   private String errorMessage;
 

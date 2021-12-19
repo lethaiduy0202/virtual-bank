@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.virtualbank.domain.AccountResponse;
 import com.virtualbank.domain.UserResponse;
 import com.virtualbank.dto.AccountDto;
-import com.virtualbank.dto.UserDto;
-import com.virtualbank.entity.User;
 import com.virtualbank.exceptions.AccountException;
 import com.virtualbank.services.AccountService;
 import com.virtualbank.services.UserService;
@@ -30,7 +28,7 @@ public class AccountController {
 
   @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AccountResponse> saveUser(
+  public ResponseEntity<AccountResponse> saveAccount(
       @RequestBody(required = true) AccountDto accountReq) throws AccountException {
     return ResponseEntity
         .ok(accountService.createAccount(userService.getCurrentUserId(), accountReq));
