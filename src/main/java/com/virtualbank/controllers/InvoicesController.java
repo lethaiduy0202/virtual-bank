@@ -33,7 +33,6 @@ public class InvoicesController {
     invoicesService.saveInvoicesType(invoicesType);
   }
 
-
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public void saveInvoices(@RequestBody InvoicesDto invoices) throws InvoicesException {

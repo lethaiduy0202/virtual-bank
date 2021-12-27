@@ -24,35 +24,34 @@ import com.virtualbank.security.VirtualBankUserDetailService;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-  
+
   @Autowired
   private VirtualBankUserDetailService userDetailsService;
-  
+
   @Bean(BeanIds.AUTHENTICATION_MANAGER)
   @Override
   public AuthenticationManager authenticationManagerBean() throws Exception {
     return super.authenticationManagerBean();
   }
-  
+
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
-  
+
   @Bean
   public JwtTokenFilter jwtTokenFilter() {
     return new JwtTokenFilter();
   }
-  
+
   @Bean
   public FilterRegistrationBean<JwtTokenFilter> preAuthTenantContextInitializerFilterRegistration(
       JwtTokenFilter filter) {
-    FilterRegistrationBean<JwtTokenFilter> registration =
-        new FilterRegistrationBean<>(filter);
+    FilterRegistrationBean<JwtTokenFilter> registration = new FilterRegistrationBean<>(filter);
     registration.setEnabled(false);
     return registration;
   }
-  
+
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
@@ -63,7 +62,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     web.ignoring()
         .antMatchers("/v2/api-docs", "/swagger-resources/**", "/swagger-resources",
             "/swagger-ui.html", "/webjars/**")
-        .and().ignoring().antMatchers("/authen/login").and().ignoring().antMatchers("/user/create");
+        .and().ignoring().antMatchers("/authen/login").and().ignoring()
+        .antMatchers("/user/create/**", "/user/providers");
   }
 
   @Override

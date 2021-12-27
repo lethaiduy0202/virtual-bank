@@ -30,6 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class TransactionServiceImpl implements TransactionService {
+  
+  public static final String CONTENT_BILL = "The payment for clixent's bill %s";
 
   @Autowired
   private TransactionTypeRepository transactionTypeRepository;
@@ -148,6 +150,55 @@ public class TransactionServiceImpl implements TransactionService {
       throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
     }
     return accountsSavedResponses;
+  }
+
+  @Override
+  public void payBills(Long userId, List<InfoTranferDto> infoTranfers) throws AccountException {
+    infoTranfers.forEach(info -> {
+      log.info("Starting tranfer money for receiver {}", info.getUsername());
+      User sender = userService.getUserByUserId(userId);
+      Optional<Account> receiverAccountOpt =
+          accountRepository.findByAccNumber(info.getAccounReceiver());
+      Optional<Account> senderAccountOpt = accountRepository.findByUser(sender);
+      if (receiverAccountOpt.isPresent() && senderAccountOpt.isPresent()) {
+        if (info.getAmount().compareTo(sender.getAccount().getAccBalance()) == 1) {
+          log.error(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
+//          throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
+        }
+        // add money for receiver
+        receiverAccountOpt.get()
+            .setAccBalance(receiverAccountOpt.get().getAccBalance().add(info.getAmount()));
+        accountRepository.save(receiverAccountOpt.get());
+
+        // build transaction history - receiver
+        Optional<TransactionType> receiverTransTypeOpt =
+            transactionTypeRepository.findByTransType(TransTypesEnum.ADD.name());
+        TransactionHistory receiverTransHistory = TransactionHistory.builder()
+            .account(receiverAccountOpt.get()).user(senderAccountOpt.get().getUser())
+            .transType(receiverTransTypeOpt.get()).transNote(info.getContent())
+            .transAmount(info.getAmount()).transDate(new Date()).build();
+        transactionHistoryRepository.save(receiverTransHistory);
+
+        // minus for sender;
+        senderAccountOpt.get()
+            .setAccBalance(senderAccountOpt.get().getAccBalance().subtract(info.getAmount()));
+        accountRepository.save(senderAccountOpt.get());
+
+        // build transaction history - sender
+        Optional<TransactionType> senderTransTypeOpt =
+            transactionTypeRepository.findByTransType(TransTypesEnum.MINUS.name());
+        TransactionHistory senderTransHistory = TransactionHistory.builder()
+            .account(senderAccountOpt.get()).user(receiverAccountOpt.get().getUser())
+            .transType(senderTransTypeOpt.get())
+            .transNote(String.format(CONTENT_BILL, senderAccountOpt.get().getUser().getUserName()))
+            .transAmount(info.getAmount()).transDate(new Date()).isSave(info.getIsSave()).build();
+        transactionHistoryRepository.save(senderTransHistory);
+        log.info("Tranfer money for receiver  {} success", info.getUsername());
+      } else {
+        log.error(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+//        throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+      }
+    });
   }
 
 }

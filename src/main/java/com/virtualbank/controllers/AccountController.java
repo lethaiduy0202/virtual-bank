@@ -28,17 +28,19 @@ public class AccountController {
 
   @PostMapping(value = "/create", produces = MediaType.APPLICATION_JSON_VALUE,
       consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AccountResponse> saveAccount(
+  public ResponseEntity<AccountResponse> createAccount(
       @RequestBody(required = true) AccountDto accountReq) throws AccountException {
     return ResponseEntity
         .ok(accountService.createAccount(userService.getCurrentUserId(), accountReq));
   }
-
+  
   @GetMapping(value = "/{accountnumber}")
   public ResponseEntity<UserResponse> getUserByAccount(
       @PathVariable("accountnumber") String accountNumber) throws AccountException {
     return ResponseEntity.ok(accountService.getUserByAccount(accountNumber));
   }
+  
+  
   
 
 }

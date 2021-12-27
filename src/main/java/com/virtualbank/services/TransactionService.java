@@ -13,6 +13,8 @@ public interface TransactionService {
 
   void tranferMoneny(Long userId, InfoTranferDto infoTranfer) throws AccountException;
   
+  void payBills(Long userId, List<InfoTranferDto> infoTranfers) throws AccountException;
+  
   List<TransactionHistoryResponse> getTransHistory(Long userId)  throws AccountException; 
   
   List<AccountSavedResponse> getAccountsSaved(Long userId) throws AccountException;

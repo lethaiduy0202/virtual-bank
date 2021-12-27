@@ -38,18 +38,22 @@ public class TransactionController {
     transactionService.tranferMoneny(userService.getCurrentUserId(), infoTranferDto);
   }
 
+  @PostMapping(value = "/bill", consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public void payBill(@RequestBody List<InfoTranferDto> infoTranferDtos) throws AccountException {
+    transactionService.payBills(userService.getCurrentUserId(), infoTranferDtos);
+  }
 
   @GetMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<TransactionHistoryResponse>> getTransHistory()
       throws AccountException {
     return ResponseEntity.ok(transactionService.getTransHistory(userService.getCurrentUserId()));
   }
-  
+
   @GetMapping(value = "/account/saved", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<AccountSavedResponse>> getListAccountSaved()
-      throws AccountException {
+  public ResponseEntity<List<AccountSavedResponse>> getListAccountSaved() throws AccountException {
     return ResponseEntity.ok(transactionService.getAccountsSaved(userService.getCurrentUserId()));
   }
-  
+
 
 }
