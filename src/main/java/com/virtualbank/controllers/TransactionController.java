@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.virtualbank.domain.AccountSavedResponse;
 import com.virtualbank.domain.TransactionHistoryResponse;
 import com.virtualbank.dto.InfoTranferDto;
 import com.virtualbank.dto.TransactionTypeDto;
@@ -43,5 +44,12 @@ public class TransactionController {
       throws AccountException {
     return ResponseEntity.ok(transactionService.getTransHistory(userService.getCurrentUserId()));
   }
+  
+  @GetMapping(value = "/account/saved", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<AccountSavedResponse>> getListAccountSaved()
+      throws AccountException {
+    return ResponseEntity.ok(transactionService.getAccountsSaved(userService.getCurrentUserId()));
+  }
+  
 
 }

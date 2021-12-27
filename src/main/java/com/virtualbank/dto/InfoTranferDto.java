@@ -11,6 +11,7 @@ import lombok.Setter;
 public class InfoTranferDto {
   private String accounReceiver;
   private String username;
+  private Boolean isSave;
   private BigDecimal amount;
   private String content;
 }

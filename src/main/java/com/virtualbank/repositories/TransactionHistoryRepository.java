@@ -8,5 +8,7 @@ import com.virtualbank.entity.TransactionHistory;
 public interface TransactionHistoryRepository extends JpaRepository<TransactionHistory, Long> {
 
   List<TransactionHistory> findByAccount(Account account);
+  
+  List<TransactionHistory> findByAccountAndIsSave(Account account, boolean isSave);
 
 }

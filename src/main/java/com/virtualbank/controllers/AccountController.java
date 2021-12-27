@@ -39,5 +39,6 @@ public class AccountController {
       @PathVariable("accountnumber") String accountNumber) throws AccountException {
     return ResponseEntity.ok(accountService.getUserByAccount(accountNumber));
   }
+  
 
 }

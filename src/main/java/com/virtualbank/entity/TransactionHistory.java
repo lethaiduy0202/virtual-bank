@@ -45,4 +45,7 @@ public class TransactionHistory {
   private Date transDate;
   @Column(name = "trans_amount", nullable = false)
   private BigDecimal transAmount;
+  @Column(name = "is_save", nullable = true)
+  private Boolean isSave;
+  
 }

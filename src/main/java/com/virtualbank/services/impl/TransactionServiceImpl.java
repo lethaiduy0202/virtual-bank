@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.virtualbank.domain.AccountSavedResponse;
 import com.virtualbank.domain.TransactionHistoryResponse;
 import com.virtualbank.dto.InfoTranferDto;
 import com.virtualbank.dto.TransactionTypeDto;
@@ -90,9 +92,8 @@ public class TransactionServiceImpl implements TransactionService {
       TransactionHistory senderTransHistory = TransactionHistory.builder()
           .account(senderAccountOpt.get()).user(receiverAccountOpt.get().getUser())
           .transType(senderTransTypeOpt.get()).transNote(infoTranfer.getContent())
-          .transAmount(infoTranfer.getAmount()).transDate(new Date()).build();
+          .transAmount(infoTranfer.getAmount()).transDate(new Date()).isSave(infoTranfer.getIsSave()).build();
       transactionHistoryRepository.save(senderTransHistory);
-
       log.info("Tranfer money for receiver  {} success", infoTranfer.getUsername());
 
     } else {
@@ -123,6 +124,30 @@ public class TransactionServiceImpl implements TransactionService {
      throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
    }
     return transactionHistoryResponses;
+  }
+
+  @Override
+  public List<AccountSavedResponse> getAccountsSaved(Long userId) throws AccountException {
+    List<AccountSavedResponse> accountsSavedResponses = new ArrayList<>();
+    User user = userService.getUserByUserId(userId);
+    Optional<Account> accountOpt = accountRepository.findByUser(user);
+    if (accountOpt.isPresent()) {
+      List<TransactionHistory> transHistories =
+          transactionHistoryRepository.findByAccountAndIsSave(accountOpt.get(), true);
+      List<User> users = transHistories.stream().map(history -> history.getUser())
+          .collect(Collectors.toList()).stream().distinct().toList();
+      users.stream().forEach(userFiltered -> {
+        AccountSavedResponse accountSaved = AccountSavedResponse.builder()
+            .accountNumber(userFiltered.getAccount().getAccNumber())
+            .fullName(userFiltered.getFullName()).username(userFiltered.getUserName())
+            .build();
+        accountsSavedResponses.add(accountSaved);
+      });
+    } else {
+      log.error(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+      throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
+    }
+    return accountsSavedResponses;
   }
 
 }
