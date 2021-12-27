@@ -135,7 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
       List<TransactionHistory> transHistories =
           transactionHistoryRepository.findByAccountAndIsSave(accountOpt.get(), true);
       List<User> users = transHistories.stream().map(history -> history.getUser())
-          .collect(Collectors.toList()).stream().distinct().toList();
+          .collect(Collectors.toList()).stream().distinct().collect(Collectors.toList());
       users.stream().forEach(userFiltered -> {
         AccountSavedResponse accountSaved = AccountSavedResponse.builder()
             .accountNumber(userFiltered.getAccount().getAccNumber())
