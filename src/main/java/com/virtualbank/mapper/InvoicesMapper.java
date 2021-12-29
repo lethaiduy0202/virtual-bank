@@ -13,7 +13,7 @@ public class InvoicesMapper {
       InvoicesType invoicesType) {
     return Invoices.builder().billMonth(invoicesDto.getBillMonth().name())
         .billAmount(invoicesDto.getBillAmount()).consumption(invoicesDto.getConsumption())
-        .user(user).invoicesType(invoicesType).build();
+        .user(user).invoicesType(invoicesType).isPay(false).build();
   }
 
 }

@@ -36,6 +36,8 @@ public class Invoices {
   private Long consumption;
   @Column(name = "bill_amount", nullable = false)
   private BigDecimal billAmount;
+  @Column(name = "is_pay", nullable = true)
+  private Boolean isPay;
   @Column(name = "date_pay", nullable = true)
   private Date datePay;
   @ManyToOne

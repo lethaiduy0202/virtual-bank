@@ -3,6 +3,7 @@ package com.virtualbank.services.impl;
 import java.math.BigDecimal;
 import java.time.Month;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class InvoicesServiceImpl implements InvoicesService {
     User user = userService.getUserByUserId(userId);
     List<InvoicesDetailResponse> invoicesDetails = new ArrayList<>();
     totalConsumption =  new BigDecimal(0);
-    List<Invoices> invoices = invoicesRepository.findByUserAndBillMonth(user, month.name());
+    List<Invoices> invoices = invoicesRepository.findByUserAndBillMonthAndIsPay(user, month.name(), false);
     invoices.stream().forEach(invoice -> {
       InvoicesDetailResponse invoicesDetail =
           InvoicesDetailResponse.builder().id(invoice.getId()).consumption(invoice.getConsumption())
@@ -81,6 +82,24 @@ public class InvoicesServiceImpl implements InvoicesService {
     });
     return InvoicesRepsonse.builder().userId(user.getId()).month(month)
         .invoiceDetails(invoicesDetails).totalConsumption(totalConsumption).build();
+  }
+
+  @Override
+  public void updateAmountInvoices(Long userId, Invoices invoiceReq, BigDecimal amountMoneyUpdation) {
+    User user = userService.getUserByUserId(userId);
+    Invoices invoice = invoicesRepository.findByUserAndBillMonthAndInvoicesType(user, invoiceReq.getBillMonth(), invoiceReq.getInvoicesType());
+    if (invoice != null) {
+      invoice.setBillAmount(amountMoneyUpdation);
+      invoice.setDatePay(new Date());
+      invoice.setIsPay(true);
+      invoicesRepository.save(invoice);
+    }
+  }
+
+  @Override
+  public List<Invoices> getInvoicesEntity(Long userId, Month month) {
+    User user = userService.getUserByUserId(userId);
+    return invoicesRepository.findByUserAndBillMonth(user, month.name());
   }
 
 }

@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.virtualbank.domain.AccountSavedResponse;
 import com.virtualbank.domain.TransactionHistoryResponse;
 import com.virtualbank.dto.InfoTranferDto;
+import com.virtualbank.dto.TransactionInvoicesDto;
 import com.virtualbank.dto.TransactionTypeDto;
 import com.virtualbank.exceptions.AccountException;
+import com.virtualbank.exceptions.TransactionException;
 import com.virtualbank.services.TransactionService;
 import com.virtualbank.services.UserService;
 
@@ -40,8 +42,9 @@ public class TransactionController {
 
   @PostMapping(value = "/bill", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public void payBill(@RequestBody List<InfoTranferDto> infoTranferDtos) throws AccountException {
-    transactionService.payBills(userService.getCurrentUserId(), infoTranferDtos);
+  public void payBill(@RequestBody TransactionInvoicesDto transactionInvoicesDto)
+      throws AccountException, TransactionException {
+    transactionService.payBills(userService.getCurrentUserId(), transactionInvoicesDto);
   }
 
   @GetMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)
