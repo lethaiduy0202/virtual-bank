@@ -188,8 +188,8 @@ public class TransactionServiceImpl implements TransactionService {
     isBalanceEnough(userId, transactionInvoicesDto.getInfoTranferDtos());
     transactionInvoicesDto.getInfoTranferDtos().stream().forEach(info -> {
       if (info.getUsername().equalsIgnoreCase(Providers.NHA_MAY_NUOC_DN.name())) {
-        amountWaterReq = info.getAmount();
         try {
+          amountWaterReq = info.getAmount();
           updateAmountInVoices(userId, invoices, amountWaterReq, InvoicesTypesEnum.WATER);
         } catch (TransactionException e) {
           log.error(e.getMessage());
