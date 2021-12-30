@@ -24,6 +24,7 @@ import com.virtualbank.enums.InvoicesTypesEnum;
 import com.virtualbank.enums.Providers;
 import com.virtualbank.enums.TransTypesEnum;
 import com.virtualbank.exceptions.AccountException;
+import com.virtualbank.exceptions.ResourceNotFoundException;
 import com.virtualbank.exceptions.TransactionException;
 import com.virtualbank.mapper.TransactionTypeMapper;
 import com.virtualbank.repositories.AccountRepository;
@@ -179,18 +180,38 @@ public class TransactionServiceImpl implements TransactionService {
   private void removeInvoices(Long userId, TransactionInvoicesDto transactionInvoicesDto)
       throws TransactionException, AccountException {
     log.info("Start remove bill was tranfered");
+    amountWaterReq = new BigDecimal(0);
+    amountElectricReq = new BigDecimal(0);
+    amountInternetReq = new BigDecimal(0);
     List<Invoices> invoices =
         invoicesService.getInvoicesEntity(userId, transactionInvoicesDto.getMonth());
     isBalanceEnough(userId, transactionInvoicesDto.getInfoTranferDtos());
     transactionInvoicesDto.getInfoTranferDtos().stream().forEach(info -> {
-      if (info.getUsername().equalsIgnoreCase(Providers.NHA_MAY_NUOC_DN.name()))
+      if (info.getUsername().equalsIgnoreCase(Providers.NHA_MAY_NUOC_DN.name())) {
         amountWaterReq = info.getAmount();
-      else if (info.getUsername().equalsIgnoreCase(Providers.EVN.name()))
-        amountElectricReq = info.getAmount();
-      else if (info.getUsername().equalsIgnoreCase(Providers.VNPT.name()))
-        amountInternetReq = info.getAmount();
+        try {
+          updateAmountInVoices(userId, invoices, amountWaterReq, InvoicesTypesEnum.WATER);
+        } catch (TransactionException e) {
+          log.error(e.getMessage());
+        }
+      } else if (info.getUsername().equalsIgnoreCase(Providers.EVN.name())) {
+        try {
+          amountElectricReq = info.getAmount();
+          updateAmountInVoices(userId, invoices, amountElectricReq, InvoicesTypesEnum.ELECTRICITY);
+        } catch (TransactionException e) {
+          log.error(e.getMessage());
+        }
+      } else if (info.getUsername().equalsIgnoreCase(Providers.VNPT.name())) {
+        try {
+          amountInternetReq = info.getAmount();
+          updateAmountInVoices(userId, invoices, amountInternetReq, InvoicesTypesEnum.INTERNET);
+        } catch (TransactionException e) {
+          log.error(e.getMessage());
+        }
+
+      }
     });
-    updateAmountInVoices(userId, invoices);
+
   }
 
   private void isBalanceEnough(Long userId, List<InfoTranferDto> tranferRequests)
@@ -198,36 +219,29 @@ public class TransactionServiceImpl implements TransactionService {
     totalAmount = new BigDecimal(0);
     User sender = userService.getUserByUserId(userId);
     tranferRequests.stream().forEach(tranfer -> {
-      totalAmount =  totalAmount.add(tranfer.getAmount());
+      totalAmount = totalAmount.add(tranfer.getAmount());
     });
     if (sender.getAccount().getAccBalance().compareTo(totalAmount) == -1) {
       throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
     }
   }
 
-  private void updateAmountInVoices(Long userId, List<Invoices> invoices)
-      throws TransactionException {
+  private void updateAmountInVoices(Long userId, List<Invoices> invoices,
+      BigDecimal amountMoneyWantPay, InvoicesTypesEnum invoicesTypes) throws TransactionException {
+    int counter = 0;
     for (Invoices invoice : invoices) {
-      if (invoice.getInvoicesType().getInvoicesType()
-          .equalsIgnoreCase(InvoicesTypesEnum.ELECTRICITY.name())) {
+      if (invoice.getInvoicesType().getInvoicesType().equalsIgnoreCase(invoicesTypes.name())) {
         if (isValidTranferBill(amountElectricReq, invoice.getBillAmount())) {
           invoicesService.updateAmountInvoices(userId, invoice,
-              invoice.getBillAmount().subtract(amountElectricReq));
-        }
-      } else if (invoice.getInvoicesType().getInvoicesType()
-          .equalsIgnoreCase(InvoicesTypesEnum.WATER.name())) {
-        if (isValidTranferBill(amountWaterReq, invoice.getBillAmount())) {
-          invoicesService.updateAmountInvoices(userId, invoice,
-              invoice.getBillAmount().subtract(amountWaterReq));
-        }
-
-      } else if (invoice.getInvoicesType().getInvoicesType()
-          .equalsIgnoreCase(InvoicesTypesEnum.INTERNET.name())) {
-        if (isValidTranferBill(amountInternetReq, invoice.getBillAmount())) {
-          invoicesService.updateAmountInvoices(userId, invoice,
-              invoice.getBillAmount().subtract(amountInternetReq));
+              invoice.getBillAmount().subtract(amountMoneyWantPay));
         }
       }
+      else {
+        counter++;
+      }
+    }
+    if (counter == invoices.size()) {
+      throw new ResourceNotFoundException("Invoices", invoicesTypes.name());
     }
   }
 
