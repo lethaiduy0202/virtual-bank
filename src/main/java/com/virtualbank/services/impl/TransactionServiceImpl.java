@@ -201,31 +201,33 @@ public class TransactionServiceImpl implements TransactionService {
     });
     if (sender.getAccount().getAccBalance().compareTo(totalAmount) == -1) {
       throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
+    } else {
+      return true;
     }
-    return true;
   }
 
-  private void updateAmountInVoices(Long userId, List<Invoices> invoices) throws TransactionException {
-    for (Invoices invoice: invoices) {
+  private void updateAmountInVoices(Long userId, List<Invoices> invoices)
+      throws TransactionException {
+    for (Invoices invoice : invoices) {
       if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.ELECTRICITY.name())) {
-          if (isValidTranferBill(amountElectricReq, invoice.getBillAmount())) {
-            invoicesService.updateAmountInvoices(userId, invoice,
-                invoice.getBillAmount().subtract(amountElectricReq));
-          }
+        if (isValidTranferBill(amountElectricReq, invoice.getBillAmount())) {
+          invoicesService.updateAmountInvoices(userId, invoice,
+              invoice.getBillAmount().subtract(amountElectricReq));
+        }
       } else if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.WATER.name())) {
-          if (isValidTranferBill(amountWaterReq, invoice.getBillAmount())) {
-            invoicesService.updateAmountInvoices(userId, invoice,
-                invoice.getBillAmount().subtract(amountWaterReq));
-          }
+        if (isValidTranferBill(amountWaterReq, invoice.getBillAmount())) {
+          invoicesService.updateAmountInvoices(userId, invoice,
+              invoice.getBillAmount().subtract(amountWaterReq));
+        }
 
       } else if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.INTERNET.name())) {
-          if (isValidTranferBill(amountInternetReq, invoice.getBillAmount())) {
-            invoicesService.updateAmountInvoices(userId, invoice,
-                invoice.getBillAmount().subtract(amountInternetReq));
-          }
+        if (isValidTranferBill(amountInternetReq, invoice.getBillAmount())) {
+          invoicesService.updateAmountInvoices(userId, invoice,
+              invoice.getBillAmount().subtract(amountInternetReq));
+        }
       }
     }
   }
