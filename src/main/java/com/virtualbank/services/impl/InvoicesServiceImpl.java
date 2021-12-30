@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import javax.management.MalformedObjectNameException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.virtualbank.domain.InvoicesDetailResponse;
@@ -29,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InvoicesServiceImpl implements InvoicesService {
   private BigDecimal totalConsumption;
-  
+
   @Autowired
   private InvoicesTypeRepository invoicesTypeRepository;
 
@@ -38,7 +39,7 @@ public class InvoicesServiceImpl implements InvoicesService {
 
   @Autowired
   private UserService userService;
-  
+
 
   @Override
   public void saveInvoicesType(InvoicesTypeDto invoicesDto) {
@@ -52,17 +53,19 @@ public class InvoicesServiceImpl implements InvoicesService {
 
   @Override
   public void saveInvoices(Long userId, InvoicesDto invoicesDto) throws InvoicesException {
-    try {
-      User user = userService.getUserByUserId(userId);
-      Optional<InvoicesType> invoicesTypeOpt =
-          invoicesTypeRepository.findByInvoicesType(invoicesDto.getInvoicesTypes().name());
-      if (invoicesTypeOpt.isPresent()) {
+    User user = userService.getUserByUserId(userId);
+    Optional<InvoicesType> invoicesTypeOpt =
+        invoicesTypeRepository.findByInvoicesType(invoicesDto.getInvoicesTypes().name());
+    if (invoicesTypeOpt.isPresent()) {
+      Invoices invoice = invoicesRepository.findByUserAndBillMonthAndInvoicesType(user,
+          invoicesDto.getBillMonth().name(), invoicesTypeOpt.get());
+      if (invoice == null) {
         invoicesRepository
             .save(InvoicesMapper.convertToEntity(invoicesDto, user, invoicesTypeOpt.get()));
       }
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      throw new InvoicesException(ErrorsEnum.CANNOT_SAVE.getErrorMessage());
+      else {
+        throw new InvoicesException(ErrorsEnum.CANNOT_SAVE.getErrorMessage());
+      }
     }
 
   }
@@ -71,12 +74,13 @@ public class InvoicesServiceImpl implements InvoicesService {
   public InvoicesRepsonse getInvoices(Long userId, Month month) {
     User user = userService.getUserByUserId(userId);
     List<InvoicesDetailResponse> invoicesDetails = new ArrayList<>();
-    totalConsumption =  new BigDecimal(0);
-    List<Invoices> invoices = invoicesRepository.findByUserAndBillMonthAndIsPay(user, month.name(), false);
+    totalConsumption = new BigDecimal(0);
+    List<Invoices> invoices =
+        invoicesRepository.findByUserAndBillMonthAndIsPay(user, month.name(), false);
     invoices.stream().forEach(invoice -> {
-      InvoicesDetailResponse invoicesDetail =
-          InvoicesDetailResponse.builder().id(invoice.getId()).consumption(invoice.getConsumption())
-              .billAmount(invoice.getBillAmount()).invoicesType(invoice.getInvoicesType()).dayPay(invoice.getDatePay()).build();
+      InvoicesDetailResponse invoicesDetail = InvoicesDetailResponse.builder().id(invoice.getId())
+          .consumption(invoice.getConsumption()).billAmount(invoice.getBillAmount())
+          .invoicesType(invoice.getInvoicesType()).dayPay(invoice.getDatePay()).build();
       invoicesDetails.add(invoicesDetail);
       totalConsumption = totalConsumption.add(invoice.getBillAmount());
     });
@@ -85,9 +89,11 @@ public class InvoicesServiceImpl implements InvoicesService {
   }
 
   @Override
-  public void updateAmountInvoices(Long userId, Invoices invoiceReq, BigDecimal amountMoneyUpdation) {
+  public void updateAmountInvoices(Long userId, Invoices invoiceReq,
+      BigDecimal amountMoneyUpdation) {
     User user = userService.getUserByUserId(userId);
-    Invoices invoice = invoicesRepository.findByUserAndBillMonthAndInvoicesType(user, invoiceReq.getBillMonth(), invoiceReq.getInvoicesType());
+    Invoices invoice = invoicesRepository.findByUserAndBillMonthAndInvoicesType(user,
+        invoiceReq.getBillMonth(), invoiceReq.getInvoicesType());
     if (invoice != null) {
       invoice.setBillAmount(amountMoneyUpdation);
       invoice.setDatePay(new Date());
