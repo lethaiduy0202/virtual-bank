@@ -192,7 +192,7 @@ public class TransactionServiceImpl implements TransactionService {
     updateAmountInVoices(userId, invoices);
   }
 
-  private boolean isBalanceEnough(Long userId, List<InfoTranferDto> tranferRequests)
+  private void isBalanceEnough(Long userId, List<InfoTranferDto> tranferRequests)
       throws AccountException {
     BigDecimal totalAmount = new BigDecimal(0);
     User sender = userService.getUserByUserId(userId);
@@ -201,8 +201,6 @@ public class TransactionServiceImpl implements TransactionService {
     });
     if (sender.getAccount().getAccBalance().compareTo(totalAmount) == -1) {
       throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
-    } else {
-      return true;
     }
   }
 
