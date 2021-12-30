@@ -42,6 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
   BigDecimal amountWaterReq = null;
   BigDecimal amountElectricReq = null;
   BigDecimal amountInternetReq = null;
+  BigDecimal totalAmount;
 
   @Autowired
   private TransactionTypeRepository transactionTypeRepository;
@@ -194,10 +195,10 @@ public class TransactionServiceImpl implements TransactionService {
 
   private void isBalanceEnough(Long userId, List<InfoTranferDto> tranferRequests)
       throws AccountException {
-    BigDecimal totalAmount = new BigDecimal(0);
+    totalAmount = new BigDecimal(0);
     User sender = userService.getUserByUserId(userId);
     tranferRequests.stream().forEach(tranfer -> {
-      totalAmount.add(tranfer.getAmount());
+      totalAmount =  totalAmount.add(tranfer.getAmount());
     });
     if (sender.getAccount().getAccBalance().compareTo(totalAmount) == -1) {
       throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
