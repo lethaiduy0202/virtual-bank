@@ -168,77 +168,28 @@ public class TransactionServiceImpl implements TransactionService {
   @Override
   public void payBills(Long userId, TransactionInvoicesDto transactionInvoicesDto)
       throws AccountException, TransactionException {
-    transactionInvoicesDto.getInfoTranferDtos().forEach(info -> {
-      log.info("Starting tranfer money for receiver {}", info.getUsername());
-      User sender = userService.getUserByUserId(userId);
-      Optional<Account> receiverAccountOpt =
-          accountRepository.findByAccNumber(info.getAccounReceiver());
-      Optional<Account> senderAccountOpt = accountRepository.findByUser(sender);
-      if (receiverAccountOpt.isPresent() && senderAccountOpt.isPresent()) {
-        if (info.getAmount().compareTo(sender.getAccount().getAccBalance()) == 1) {
-          log.error(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
-          // throw new AccountException(ErrorsEnum.MONEY_NOT_ENOUGHT.getErrorMessage());
-        }
-        // add money for receiver
-        receiverAccountOpt.get()
-            .setAccBalance(receiverAccountOpt.get().getAccBalance().add(info.getAmount()));
-        accountRepository.save(receiverAccountOpt.get());
-
-        // build transaction history - receiver
-        Optional<TransactionType> receiverTransTypeOpt =
-            transactionTypeRepository.findByTransType(TransTypesEnum.ADD.name());
-        TransactionHistory receiverTransHistory = TransactionHistory.builder()
-            .account(receiverAccountOpt.get()).user(senderAccountOpt.get().getUser())
-            .transType(receiverTransTypeOpt.get()).transNote(info.getContent())
-            .transAmount(info.getAmount()).transDate(new Date()).build();
-        transactionHistoryRepository.save(receiverTransHistory);
-
-        // minus for sender;
-        senderAccountOpt.get()
-            .setAccBalance(senderAccountOpt.get().getAccBalance().subtract(info.getAmount()));
-        accountRepository.save(senderAccountOpt.get());
-
-        // build transaction history - sender
-        Optional<TransactionType> senderTransTypeOpt =
-            transactionTypeRepository.findByTransType(TransTypesEnum.MINUS.name());
-        TransactionHistory senderTransHistory = TransactionHistory.builder()
-            .account(senderAccountOpt.get()).user(receiverAccountOpt.get().getUser())
-            .transType(senderTransTypeOpt.get())
-            .transNote(String.format(CONTENT_BILL, senderAccountOpt.get().getUser().getUserName()))
-            .transAmount(info.getAmount()).transDate(new Date()).isSave(info.getIsSave()).build();
-        transactionHistoryRepository.save(senderTransHistory);
-        // remove Invoices that was paid
-          removeInvoices(userId, transactionInvoicesDto);
-          log.info("Tranfer money for receiver  {} success", info.getUsername());
-
-      } else {
-        log.error(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
-        // throw new AccountException(ErrorsEnum.ACCOUNT_NON_EXIST.getErrorMessage());
-      }
-    });
+    for (InfoTranferDto info : transactionInvoicesDto.getInfoTranferDtos()) {
+      tranferMoneny(userId, info);
+    }
+    removeInvoices(userId, transactionInvoicesDto);
   }
 
   @Transactional
-  private void removeInvoices(Long userId, TransactionInvoicesDto transactionInvoicesDto) {
-    try {
-      log.info("Start remove bill was tranfered");
-      List<Invoices> invoices =
-          invoicesService.getInvoicesEntity(userId, transactionInvoicesDto.getMonth());
-      isBalanceEnough(userId, transactionInvoicesDto.getInfoTranferDtos());
-      transactionInvoicesDto.getInfoTranferDtos().stream().forEach(info -> {
-        if (info.getUsername().equalsIgnoreCase(Providers.NHA_MAY_NUOC_DN.name()))
-          amountWaterReq = info.getAmount();
-        else if (info.getUsername().equalsIgnoreCase(Providers.EVN.name()))
-          amountElectricReq = info.getAmount();
-        else if (info.getUsername().equalsIgnoreCase(Providers.VNPT.name()))
-          amountInternetReq = info.getAmount();
-      });
-      updateAmountInVoices(userId, invoices);
-      
-    } catch (Exception e) {
-      log.error(e.getMessage());
-      
-    }
+  private void removeInvoices(Long userId, TransactionInvoicesDto transactionInvoicesDto)
+      throws TransactionException, AccountException {
+    log.info("Start remove bill was tranfered");
+    List<Invoices> invoices =
+        invoicesService.getInvoicesEntity(userId, transactionInvoicesDto.getMonth());
+    isBalanceEnough(userId, transactionInvoicesDto.getInfoTranferDtos());
+    transactionInvoicesDto.getInfoTranferDtos().stream().forEach(info -> {
+      if (info.getUsername().equalsIgnoreCase(Providers.NHA_MAY_NUOC_DN.name()))
+        amountWaterReq = info.getAmount();
+      else if (info.getUsername().equalsIgnoreCase(Providers.EVN.name()))
+        amountElectricReq = info.getAmount();
+      else if (info.getUsername().equalsIgnoreCase(Providers.VNPT.name()))
+        amountInternetReq = info.getAmount();
+    });
+    updateAmountInVoices(userId, invoices);
   }
 
   private boolean isBalanceEnough(Long userId, List<InfoTranferDto> tranferRequests)
@@ -254,44 +205,32 @@ public class TransactionServiceImpl implements TransactionService {
     return true;
   }
 
-  private void updateAmountInVoices(Long userId, List<Invoices> invoices) {
-    invoices.stream().forEach(invoice -> {
+  private void updateAmountInVoices(Long userId, List<Invoices> invoices) throws TransactionException {
+    for (Invoices invoice: invoices) {
       if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.ELECTRICITY.name())) {
-        try {
-          if (isValidTranferAmount(amountElectricReq, invoice.getBillAmount())) {
+          if (isValidTranferBill(amountElectricReq, invoice.getBillAmount())) {
             invoicesService.updateAmountInvoices(userId, invoice,
                 invoice.getBillAmount().subtract(amountElectricReq));
           }
-        } catch (TransactionException e) {
-          log.error(e.getMessage());
-        }
       } else if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.WATER.name())) {
-        try {
-          if (isValidTranferAmount(amountWaterReq, invoice.getBillAmount())) {
+          if (isValidTranferBill(amountWaterReq, invoice.getBillAmount())) {
             invoicesService.updateAmountInvoices(userId, invoice,
                 invoice.getBillAmount().subtract(amountWaterReq));
           }
-        } catch (TransactionException e) {
-          log.error(e.getMessage());
-        }
 
       } else if (invoice.getInvoicesType().getInvoicesType()
           .equalsIgnoreCase(InvoicesTypesEnum.INTERNET.name())) {
-        try {
-          if (isValidTranferAmount(amountInternetReq, invoice.getBillAmount())) {
+          if (isValidTranferBill(amountInternetReq, invoice.getBillAmount())) {
             invoicesService.updateAmountInvoices(userId, invoice,
                 invoice.getBillAmount().subtract(amountInternetReq));
           }
-        } catch (TransactionException e) {
-          log.error(e.getMessage());
-        }
       }
-    });
+    }
   }
 
-  private boolean isValidTranferAmount(BigDecimal amountWantPay, BigDecimal amountInvoices)
+  private boolean isValidTranferBill(BigDecimal amountWantPay, BigDecimal amountInvoices)
       throws TransactionException {
     if (amountWantPay != null && (amountWantPay.compareTo(amountInvoices) == -1
         || amountWantPay.compareTo(amountInvoices) == 0))
@@ -300,5 +239,6 @@ public class TransactionServiceImpl implements TransactionService {
       throw new TransactionException(ErrorsEnum.AMOUNT_MONEY_INVALID.getErrorMessage());
     }
   }
+
 
 }

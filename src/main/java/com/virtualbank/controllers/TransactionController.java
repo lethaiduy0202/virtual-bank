@@ -2,6 +2,7 @@ package com.virtualbank.controllers;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,9 +43,10 @@ public class TransactionController {
 
   @PostMapping(value = "/bill", consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
-  public void payBill(@RequestBody TransactionInvoicesDto transactionInvoicesDto)
+  public ResponseEntity<HttpStatus> payBill(@RequestBody TransactionInvoicesDto transactionInvoicesDto)
       throws AccountException, TransactionException {
-    transactionService.payBills(userService.getCurrentUserId(), transactionInvoicesDto);
+      transactionService.payBills(userService.getCurrentUserId(), transactionInvoicesDto);
+      return ResponseEntity.status(HttpStatus.OK).build();
   }
 
   @GetMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)
