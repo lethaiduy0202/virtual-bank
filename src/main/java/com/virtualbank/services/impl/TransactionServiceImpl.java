@@ -168,10 +168,10 @@ public class TransactionServiceImpl implements TransactionService {
   @Override
   public void payBills(Long userId, TransactionInvoicesDto transactionInvoicesDto)
       throws AccountException, TransactionException {
+    removeInvoices(userId, transactionInvoicesDto);
     for (InfoTranferDto info : transactionInvoicesDto.getInfoTranferDtos()) {
       tranferMoneny(userId, info);
     }
-    removeInvoices(userId, transactionInvoicesDto);
   }
 
   @Transactional
